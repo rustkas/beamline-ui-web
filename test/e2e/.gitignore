@@ -1,0 +1,12 @@
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Visual regression snapshots (keep baseline, ignore test results)
+__snapshots__/*/messages-*-actual.png
+__snapshots__/*/messages-*-diff.png
+
+# Keep baseline snapshots
+!__snapshots__/*/messages-*-expected.png
+

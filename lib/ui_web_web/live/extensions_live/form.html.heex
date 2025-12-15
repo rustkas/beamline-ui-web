@@ -1,0 +1,315 @@
+<div class="px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <.link navigate={~p"/app/extensions"} class="text-sm text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
+      ← Back to Extensions
+    </.link>
+    <h1 class="text-3xl font-bold text-gray-900"><%= @page_title %></h1>
+  </div>
+
+  <%= if @loading do %>
+    <div class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <p class="mt-2 text-sm text-gray-500">Loading extension...</p>
+    </div>
+  <% else %>
+    <form
+      for={@changeset}
+      id="extension-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="space-y-6"
+    >
+      <!-- Basic Info Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h2>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <!-- Name -->
+          <div>
+            <label for="extension_name" class="block text-sm font-medium text-gray-700 mb-1">
+              Name *
+            </label>
+            <input
+              type="text"
+              name="extension[name]"
+              id="extension_name"
+              value={Ecto.Changeset.get_field(@changeset, :name)}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="openai-provider"
+              required
+            />
+            <%= if error = Ecto.Changeset.get_error(@changeset, :name) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+            <p class="mt-1 text-xs text-gray-500">Lowercase, alphanumeric with hyphens</p>
+          </div>
+
+          <!-- Type -->
+          <div>
+            <label for="extension_type" class="block text-sm font-medium text-gray-700 mb-1">
+              Type *
+            </label>
+            <select
+              name="extension[type]"
+              id="extension_type"
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+            >
+              <option value="">Select type...</option>
+              <option value="provider" selected={Ecto.Changeset.get_field(@changeset, :type) == "provider"}>Provider</option>
+              <option value="validator" selected={Ecto.Changeset.get_field(@changeset, :type) == "validator"}>Validator</option>
+              <option value="pre" selected={Ecto.Changeset.get_field(@changeset, :type) == "pre"}>Pre-processor</option>
+              <option value="post" selected={Ecto.Changeset.get_field(@changeset, :type) == "post"}>Post-processor</option>
+            </select>
+            <%= if error = Ecto.Changeset.get_error(@changeset, :type) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+
+          <!-- Version -->
+          <div>
+            <label for="extension_version" class="block text-sm font-medium text-gray-700 mb-1">
+              Version *
+            </label>
+            <input
+              type="text"
+              name="extension[version]"
+              id="extension_version"
+              value={Ecto.Changeset.get_field(@changeset, :version)}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="1.0.0"
+              required
+            />
+            <%= if error = Ecto.Changeset.get_error(@changeset, :version) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+            <p class="mt-1 text-xs text-gray-500">Semantic version (e.g., 1.0.0)</p>
+          </div>
+
+          <!-- Enabled -->
+          <div class="flex items-center pt-8">
+            <input
+              type="checkbox"
+              name="extension[enabled]"
+              id="extension_enabled"
+              checked={Ecto.Changeset.get_field(@changeset, :enabled) != false}
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label for="extension_enabled" class="ml-2 block text-sm text-gray-900">
+              Enabled on creation
+            </label>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mt-6">
+          <label for="extension_description" class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            name="extension[description]"
+            id="extension_description"
+            rows="3"
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Brief description of what this extension does..."
+          ><%= Ecto.Changeset.get_field(@changeset, :description) || "" %></textarea>
+        </div>
+      </div>
+
+      <!-- NATS Configuration Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">NATS Configuration</h2>
+
+        <div>
+          <label for="extension_nats_subject" class="block text-sm font-medium text-gray-700 mb-1">
+            NATS Subject *
+          </label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              name="extension[nats_subject]"
+              id="extension_nats_subject"
+              value={Ecto.Changeset.get_field(@changeset, :nats_subject)}
+              class="flex-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="beamline.extensions.provider.openai.v1"
+              required
+            />
+            <button
+              type="button"
+              phx-click="generate_subject"
+              phx-value-type={Ecto.Changeset.get_field(@changeset, :type) || ""}
+              phx-value-name={Ecto.Changeset.get_field(@changeset, :name) || ""}
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Generate
+            </button>
+          </div>
+          <%= if error = Ecto.Changeset.get_error(@changeset, :nats_subject) do %>
+            <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p class="text-sm text-red-800"><%= elem(error, 0) %></p>
+              <p class="text-xs text-red-600 mt-1">Examples:</p>
+              <ul class="text-xs text-red-600 list-disc list-inside">
+                <li>beamline.extensions.provider.openai.v1</li>
+                <li>beamline.extensions.validator.schema.v1alpha</li>
+              </ul>
+            </div>
+          <% else %>
+            <p class="mt-1 text-xs text-gray-500">
+              Pattern: beamline.extensions.&lt;type&gt;.&lt;name&gt;.v&lt;N&gt;
+            </p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Health Check Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Health Check</h2>
+
+        <div>
+          <label for="extension_health_endpoint" class="block text-sm font-medium text-gray-700 mb-1">
+            Health Endpoint
+          </label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              name="extension[health_endpoint]"
+              id="extension_health_endpoint"
+              value={Ecto.Changeset.get_field(@changeset, :health_endpoint)}
+              class="flex-1 block border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="http://localhost:9090/_health"
+            />
+            <button
+              type="button"
+              phx-click="check_health"
+              phx-value-endpoint={Ecto.Changeset.get_field(@changeset, :health_endpoint) || ""}
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              disabled={!Ecto.Changeset.get_field(@changeset, :health_endpoint)}
+            >
+              Test
+            </button>
+          </div>
+          <%= if error = Ecto.Changeset.get_error(@changeset, :health_endpoint) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% else %>
+            <p class="mt-1 text-xs text-gray-500">Optional: URL to check extension health</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Metadata Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Metadata</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="extension_metadata_author" class="block text-sm font-medium text-gray-700 mb-1">
+              Author
+            </label>
+            <input
+              type="text"
+              name="extension[metadata][author]"
+              id="extension_metadata_author"
+              value={UiWebWeb.ExtensionsLive.Form.get_metadata_field(@changeset, :author)}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Your Name"
+            />
+          </div>
+
+          <div>
+            <.live_component
+              module={UiWebWeb.Components.TagsInput}
+              id="extension-tags"
+              field={%{name: "extension[metadata][tags]", value: UiWebWeb.ExtensionsLive.Form.get_metadata_tags(@changeset) || []}}
+              suggestions={["llm", "streaming", "openai", "anthropic", "rag", "vector-db", "chat", "completion", "ai", "ml", "nlp", "embeddings"]}
+              max_tags={10}
+            />
+          </div>
+
+          <div>
+            <label for="extension_metadata_docs_url" class="block text-sm font-medium text-gray-700 mb-1">
+              Documentation URL
+            </label>
+            <input
+              type="url"
+              name="extension[metadata][docs_url]"
+              id="extension_metadata_docs_url"
+              value={UiWebWeb.ExtensionsLive.Form.get_metadata_field(@changeset, :docs_url)}
+              phx-change="validate"
+              phx-debounce="500"
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="https://docs.example.com/extensions/my-extension"
+            />
+            <%= if error = get_in(@changeset.errors, [:metadata, :docs_url]) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+
+            <!-- URL Preview Component -->
+            <.url_preview
+              id="docs-url-preview"
+              url={UiWebWeb.ExtensionsLive.Form.get_metadata_field(@changeset, :docs_url) || ""}
+              placeholder="Enter a documentation URL to see preview"
+              max_description_length={150}
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Config Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Advanced Configuration</h2>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="extension_config_timeout_ms" class="block text-sm font-medium text-gray-700 mb-1">
+              Timeout (ms)
+            </label>
+            <input
+              type="number"
+              name="extension[config][timeout_ms]"
+              id="extension_config_timeout_ms"
+              value={UiWebWeb.ExtensionsLive.Form.get_config_field(@changeset, :timeout_ms, 30000)}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              min="1000"
+              max="300000"
+            />
+          </div>
+
+          <div>
+            <label for="extension_config_max_retries" class="block text-sm font-medium text-gray-700 mb-1">
+              Max Retries
+            </label>
+            <input
+              type="number"
+              name="extension[config][max_retries]"
+              id="extension_config_max_retries"
+              value={UiWebWeb.ExtensionsLive.Form.get_config_field(@changeset, :max_retries, 3)}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              min="0"
+              max="9"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4">
+        <.link
+          navigate={~p"/app/extensions"}
+          class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Cancel
+        </.link>
+
+        <button
+          type="submit"
+          disabled={!@changeset.valid?}
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          <%= if @extension_id, do: "Update", else: "Create" %> Extension
+        </button>
+      </div>
+    </form>
+  <% end %>
+</div>
+

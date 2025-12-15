@@ -1,0 +1,244 @@
+<div class="px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <.link
+      navigate={~p"/app/messages"}
+      class="text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center"
+    >
+      <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Messages
+    </.link>
+    <h1 class="text-3xl font-bold text-gray-900"><%= @page_title %></h1>
+  </div>
+
+  <!-- Flash Messages -->
+  <%= if live_flash(@flash, :error) do %>
+    <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 p-4 text-sm">
+      <%= live_flash(@flash, :error) %>
+    </div>
+  <% end %>
+
+  <!-- Form -->
+  <div class="bg-white shadow rounded-lg p-6">
+    <form
+      id="message-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="space-y-6"
+    >
+      <!-- Type + Status -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="message_type" class="block text-sm font-medium text-gray-700 mb-1">
+            Type *
+          </label>
+          <select
+            name="message[type]"
+            id="message_type"
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            required
+          >
+            <option value="">Select type...</option>
+            <option value="chat" selected={Ecto.Changeset.get_field(@changeset, :type) == "chat"}>Chat</option>
+            <option value="code" selected={Ecto.Changeset.get_field(@changeset, :type) == "code"}>Code</option>
+            <option value="completion" selected={Ecto.Changeset.get_field(@changeset, :type) == "completion"}>Completion</option>
+          </select>
+          <%= if error = Keyword.get(@changeset.errors, :type) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% end %>
+        </div>
+
+        <div>
+          <label for="message_status" class="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            name="message[status]"
+            id="message_status"
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          >
+            <option value="pending" selected={Ecto.Changeset.get_field(@changeset, :status) == "pending"}>Pending</option>
+            <option value="processing" selected={Ecto.Changeset.get_field(@changeset, :status) == "processing"}>Processing</option>
+            <option value="completed" selected={Ecto.Changeset.get_field(@changeset, :status) == "completed"}>Completed</option>
+            <option value="failed" selected={Ecto.Changeset.get_field(@changeset, :status) == "failed"}>Failed</option>
+          </select>
+          <%= if error = Keyword.get(@changeset.errors, :status) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-medium text-gray-900">Content</h2>
+
+        <div>
+          <label for="message_prompt" class="block text-sm font-medium text-gray-700 mb-1">
+            Prompt *
+          </label>
+          <textarea
+            name="message[prompt]"
+            id="message_prompt"
+            rows="4"
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Enter your prompt..."
+            required
+          ><%= Ecto.Changeset.get_field(@changeset, :prompt) || "" %></textarea>
+          <%= if error = Keyword.get(@changeset.errors, :prompt) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% end %>
+        </div>
+
+        <div>
+          <label for="message_response" class="block text-sm font-medium text-gray-700 mb-1">
+            Response
+          </label>
+          <textarea
+            name="message[response]"
+            id="message_response"
+            rows="4"
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Enter response (optional)..."
+          ><%= Ecto.Changeset.get_field(@changeset, :response) || "" %></textarea>
+          <%= if error = Keyword.get(@changeset.errors, :response) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="message_model" class="block text-sm font-medium text-gray-700 mb-1">
+              Model
+            </label>
+            <input
+              type="text"
+              name="message[model]"
+              id="message_model"
+              value={Ecto.Changeset.get_field(@changeset, :model) || ""}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="gpt-4, gpt-3.5-turbo, etc."
+            />
+            <%= if error = Keyword.get(@changeset.errors, :model) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label for="message_temperature" class="block text-sm font-medium text-gray-700 mb-1">
+              Temperature
+            </label>
+            <input
+              type="number"
+              name="message[temperature]"
+              id="message_temperature"
+              value={Ecto.Changeset.get_field(@changeset, :temperature) || ""}
+              step="0.1"
+              min="0"
+              max="2"
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="0.0 - 2.0"
+            />
+            <%= if error = Keyword.get(@changeset.errors, :temperature) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata Section -->
+      <div class="bg-gray-50 rounded-lg p-4 space-y-4">
+        <h2 class="text-lg font-medium text-gray-900">Metadata</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="message_user_id" class="block text-sm font-medium text-gray-700 mb-1">
+              User ID
+            </label>
+            <input
+              type="text"
+              name="message[user_id]"
+              id="message_user_id"
+              value={Ecto.Changeset.get_field(@changeset, :user_id) || ""}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="user_123"
+            />
+            <%= if error = Keyword.get(@changeset.errors, :user_id) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label for="message_session_id" class="block text-sm font-medium text-gray-700 mb-1">
+              Session ID
+            </label>
+            <input
+              type="text"
+              name="message[session_id]"
+              id="message_session_id"
+              value={Ecto.Changeset.get_field(@changeset, :session_id) || ""}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="session_456"
+            />
+            <%= if error = Keyword.get(@changeset.errors, :session_id) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+
+          <div>
+            <label for="message_tenant" class="block text-sm font-medium text-gray-700 mb-1">
+              Tenant
+            </label>
+            <input
+              type="text"
+              name="message[tenant]"
+              id="message_tenant"
+              value={Ecto.Changeset.get_field(@changeset, :tenant) || ""}
+              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="tenant_dev"
+            />
+            <%= if error = Keyword.get(@changeset.errors, :tenant) do %>
+              <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <label for="message_tags" class="block text-sm font-medium text-gray-700 mb-1">
+            Tags (comma-separated)
+          </label>
+          <input
+            type="text"
+            name="message[tags]"
+            id="message_tags"
+            value={if tags = Ecto.Changeset.get_field(@changeset, :tags), do: Enum.join(tags, ", "), else: ""}
+            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="tag1, tag2, tag3"
+          />
+          <p class="mt-1 text-xs text-gray-500">Enter tags separated by commas</p>
+          <%= if error = Keyword.get(@changeset.errors, :tags) do %>
+            <p class="mt-1 text-sm text-red-600"><%= elem(error, 0) %></p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <.link
+          navigate={~p"/app/messages"}
+          class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Cancel
+        </.link>
+
+        <button
+          type="submit"
+          class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+        >
+          <%= if @mode == :new, do: "Create Message", else: "Save Changes" %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

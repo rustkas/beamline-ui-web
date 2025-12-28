@@ -49,12 +49,12 @@ defmodule UiWebWeb.ExtensionsLive.Index do
 
   @impl true
   def handle_event("filter_type", %{"type" => type}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/app/extensions?type=#{type}&status=#{socket.assigns.filter_status}")}
+    {:noreply, push_patch(socket, to: ~p"/app/#{socket.assigns.tenant_id}/extensions?type=#{type}&status=#{socket.assigns.filter_status}")}
   end
 
   @impl true
   def handle_event("filter_status", %{"status" => status}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/app/extensions?type=#{socket.assigns.filter_type}&status=#{status}")}
+    {:noreply, push_patch(socket, to: ~p"/app/#{socket.assigns.tenant_id}/extensions?type=#{socket.assigns.filter_type}&status=#{status}")}
   end
 
   @impl true
@@ -197,4 +197,3 @@ defmodule UiWebWeb.ExtensionsLive.Index do
   def type_badge_class("post"), do: "bg-pink-100 text-pink-800"
   def type_badge_class(_), do: "bg-gray-100 text-gray-800"
 end
-

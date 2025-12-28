@@ -124,6 +124,7 @@ defmodule UiWeb.Realtime.EventSubscriber do
   defp map_nats_to_phoenix("beamline.extensions.events." <> _), do: "extensions:updates"
   defp map_nats_to_phoenix("beamline.messages.events." <> _), do: "messages:updates"
   defp map_nats_to_phoenix("beamline.policies.events." <> _), do: "policies:updates"
+  defp map_nats_to_phoenix("caf.worker.heartbeat." <> _), do: "workers:heartbeat"
   defp map_nats_to_phoenix(_), do: "unknown:updates"
 
   defp nats_enabled? do

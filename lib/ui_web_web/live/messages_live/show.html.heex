@@ -3,7 +3,7 @@
   <div class="mb-6 flex items-center justify-between">
     <div class="flex items-center gap-4">
       <.link
-        navigate={~p"/app/messages"}
+        navigate={~p"/app/#{@tenant_id}/messages"}
         class="text-gray-600 hover:text-gray-900"
       >
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
     <div class="flex gap-2">
       <%= if @message do %>
         <.link
-          navigate={~p"/app/messages/#{@message["id"] || @message[:id]}/edit"}
+          navigate={~p"/app/#{@tenant_id}/messages/#{@message["id"] || @message[:id]}/edit"}
           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
         >
           Edit
@@ -204,7 +204,7 @@
         <p class="mt-1 text-sm text-gray-500">The message you're looking for doesn't exist or has been deleted.</p>
         <div class="mt-6">
           <.link
-            navigate={~p"/app/messages"}
+            navigate={~p"/app/#{@tenant_id}/messages"}
             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Back to Messages

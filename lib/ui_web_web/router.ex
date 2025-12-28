@@ -28,18 +28,21 @@ defmodule UiWebWeb.Router do
     end
   end
 
-  scope "/app", UiWebWeb do
+  scope "/app/:tenant_id", UiWebWeb do
     pipe_through [:browser, :auth]
-    live "/dashboard", DashboardLive, :index
-    live "/messages", MessagesLive.Index, :index
-    live "/messages/new", MessagesLive.Form, :new
-    live "/messages/:id", MessagesLive.Show, :show
-    live "/messages/:id/edit", MessagesLive.Form, :edit
-    live "/policies", PoliciesLive, :index
-    live "/extensions", ExtensionsLive.Index, :index
-    live "/extensions/new", ExtensionsLive.Form, :new
-    live "/extensions/:id/edit", ExtensionsLive.Form, :edit
-    live "/extensions/pipeline", ExtensionsPipelineLive, :index
+    
+    live_session :app, on_mount: [{UiWebWeb.Live.TenantHook, :default}] do
+      live "/dashboard", DashboardLive, :index
+      live "/messages", MessagesLive.Index, :index
+      live "/messages/new", MessagesLive.Form, :new
+      live "/messages/:id", MessagesLive.Show, :show
+      live "/messages/:id/edit", MessagesLive.Form, :edit
+      live "/policies", PoliciesLive, :index
+      live "/extensions", ExtensionsLive.Index, :index
+      live "/extensions/new", ExtensionsLive.Form, :new
+      live "/extensions/:id/edit", ExtensionsLive.Form, :edit
+      live "/extensions/pipeline", ExtensionsPipelineLive, :index
+    end
   end
 
   # Load current user from Guardian token

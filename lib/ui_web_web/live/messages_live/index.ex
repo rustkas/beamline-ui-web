@@ -12,6 +12,9 @@ defmodule UiWebWeb.MessagesLive.Index do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(UiWeb.PubSub, "messages:updates")
+      context = LiveViewHelpers.get_context(socket)
+      tenant_id = Map.get(context, :tenant_id) || Application.get_env(:ui_web, :tenant_id, "tenant_dev")
+      UiWebWeb.Endpoint.subscribe("messages:" <> tenant_id)
     end
 
     socket =
@@ -262,6 +265,23 @@ defmodule UiWebWeb.MessagesLive.Index do
   end
 
   @impl true
+  def handle_info(%Phoenix.Socket.Broadcast{topic: _t, event: "message_event", payload: %{"event" => type, "data" => data}}, socket) do
+    case type do
+      "message_created" ->
+        handle_info({:event, %{"type" => "message_created", "data" => data}}, socket)
+
+      "message_updated" ->
+        handle_info({:event, %{"type" => "message_updated", "data" => data}}, socket)
+
+      "message_deleted" ->
+        handle_info({:event, %{"type" => "message_deleted", "data" => %{"id" => (data["id"] || data[:id])}}}, socket)
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_info({:event, _event}, socket) do
     {:noreply, socket}
   end
@@ -311,7 +331,7 @@ defmodule UiWebWeb.MessagesLive.Index do
       |> Map.new()
 
     query_string = URI.encode_query(params)
-    ~p"/app/messages?#{query_string}"
+    ~p"/app/#{socket.assigns.tenant_id}/messages?#{query_string}"
   end
 
   defp mime_type("json"), do: "application/json"

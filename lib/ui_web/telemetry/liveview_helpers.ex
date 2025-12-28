@@ -51,13 +51,13 @@ defmodule UiWeb.Telemetry.LiveViewHelpers do
   
   defp get_tenant_id(socket) do
     cond do
+      Map.has_key?(socket.assigns, :tenant_id) ->
+        socket.assigns.tenant_id
+
       Map.has_key?(socket.assigns, :current_user) and 
         is_map(socket.assigns.current_user) and 
         Map.has_key?(socket.assigns.current_user, :tenant_id) ->
         socket.assigns.current_user.tenant_id
-      
-      Map.has_key?(socket.assigns, :tenant_id) ->
-        socket.assigns.tenant_id
       
       true ->
         nil

@@ -123,7 +123,7 @@ defmodule UiWebWeb.ExtensionsLive.Form do
       {:error, _reason} ->
         socket
         |> put_flash(:error, "Extension not found")
-        |> push_navigate(to: ~p"/app/extensions")
+        |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/extensions")
     end
   end
 
@@ -139,7 +139,7 @@ defmodule UiWebWeb.ExtensionsLive.Form do
       {:ok, _extension} ->
         socket
         |> put_flash(:info, "Extension #{if socket.assigns.extension_id, do: "updated", else: "created"} successfully")
-        |> push_navigate(to: ~p"/app/extensions")
+        |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/extensions")
         |> then(&{:noreply, &1})
 
       {:error, {:http_error, 422, %{"errors" => errors}}} ->
@@ -253,4 +253,3 @@ defmodule UiWebWeb.ExtensionsLive.Form do
     {:noreply, socket}
   end
 end
-

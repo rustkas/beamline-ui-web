@@ -18,4 +18,4 @@
 - CSS not applied → ensure Tailwind built and assets installed in `assets/`.
 
 ## References
-- See `docs/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` for full step-by-step.
+- See `docs/archive/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` for full step-by-step.

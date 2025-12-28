@@ -399,7 +399,7 @@ jobs:
 - [UI-Web Architecture](docs/ARCHITECTURE.md) - System architecture
 
 ### Context
-- [CP1 Acceptance Report](../../docs/dev/CP1_ACCEPTANCE_REPORT.md) - Checkpoint status
+- [CP1 Acceptance Report](../../docs/archive/dev/CP1_ACCEPTANCE_REPORT.md) - Checkpoint status
 - [Beamline Vision](../../docs/BEAMLINE_VISION_OVERVIEW_RU.md) - Project vision
 
 ---

@@ -43,7 +43,7 @@ defmodule UiWebWeb.MessagesLive.Show do
         socket
         |> assign(:loading, false)
         |> put_flash(:error, "Failed to load message. " <> msg)
-        |> push_navigate(to: ~p"/app/messages")
+        |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/messages")
     end
   end
 
@@ -54,7 +54,7 @@ defmodule UiWebWeb.MessagesLive.Show do
         {:noreply,
          socket
          |> put_flash(:info, "Message deleted successfully")
-         |> push_navigate(to: ~p"/app/messages")}
+         |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/messages")}
 
       {:error, reason} ->
         msg = GatewayErrorHelper.format_gateway_error(reason)
@@ -87,4 +87,3 @@ defmodule UiWebWeb.MessagesLive.Show do
   def status_badge_class("failed"), do: "bg-red-100 text-red-800"
   def status_badge_class(_), do: "bg-gray-100 text-gray-800"
 end
-

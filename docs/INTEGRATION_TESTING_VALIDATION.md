@@ -328,7 +328,7 @@ After CI run, check for:
 - [Integration Testing Guide](INTEGRATION_TESTING.md) - Full testing guide
 - [Gateway API Contracts](../../c-gateway/docs/API_SPEC.md) - API specification
 - [UI-Web Architecture](ARCHITECTURE.md) - System architecture
-- [CP1 Acceptance Report](../../docs/dev/CP1_ACCEPTANCE_REPORT.md) - Checkpoint status
+- [CP1 Acceptance Report](../../docs/archive/dev/CP1_ACCEPTANCE_REPORT.md) - Checkpoint status
 
 ### External References
 - [ExUnit Documentation](https://hexdocs.pm/ex_unit/) - Elixir testing framework

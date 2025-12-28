@@ -11,7 +11,7 @@ defmodule UiWebWeb.AuthController do
     conn
     |> Guardian.Plug.sign_in(user_params)
     |> put_flash(:info, "Successfully authenticated")
-    |> redirect(to: ~p"/app/dashboard")
+    |> redirect(to: ~p"/app/tenant_dev/dashboard")
   end
 
   def callback(%{assigns: %{ueberauth_failure: _fails}} = conn, _params) do

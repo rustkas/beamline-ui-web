@@ -36,7 +36,7 @@
 - ✅ `assets/css/app.css` - Base styles + custom classes (.nav-link, .button)
 
 ### **Documentation:**
-- ✅ `docs/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` - Detailed step-by-step guide
+- ✅ `docs/archive/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` - Detailed step-by-step guide
 - ✅ `PHASE1_CHECKLIST.md` - Quick checklist
 - ✅ `README.md` - Project overview
 - ✅ `MIGRATION_BENEFITS.md` - Why Phoenix LiveView
@@ -261,7 +261,7 @@ apps/ui_web/
 
 ### **Setup Guides:**
 - `PHASE1_CHECKLIST.md` - Quick checklist (start here!)
-- `docs/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` - Detailed step-by-step guide
+- `docs/archive/dev/PHASE1_UI_WEB_PROJECT_SETUP.md` - Detailed step-by-step guide
 
 ### **Architecture & Design:**
 - `docs/WHY_PHOENIX_LIVEVIEW.md` - Why LiveView (detailed analysis)

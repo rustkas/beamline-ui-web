@@ -10,7 +10,7 @@
 
     <div class="mt-4 sm:mt-0">
       <.link
-        navigate={~p"/app/messages/new"}
+        navigate={~p"/app/#{@tenant_id}/messages/new"}
         class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
       >
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +197,7 @@
                 <td class="whitespace-nowrap px-3 py-4 text-sm font-medium">
                   <div class="flex gap-2">
                     <.link
-                      navigate={~p"/app/messages/#{message["id"]}"}
+                      navigate={~p"/app/#{@tenant_id}/messages/#{message["id"]}"}
                       class="text-indigo-600 hover:text-indigo-900"
                     >
                       View
@@ -243,4 +243,3 @@
     <% end %>
   <% end %>
 </div>
-

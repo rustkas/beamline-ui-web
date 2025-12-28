@@ -40,7 +40,7 @@ defmodule UiWebWeb.MessagesLive.Form do
         {:noreply,
          socket
          |> put_flash(:error, "Failed to load message. " <> msg)
-         |> push_navigate(to: ~p"/app/messages")}
+         |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/messages")}
     end
   end
 
@@ -85,7 +85,7 @@ defmodule UiWebWeb.MessagesLive.Form do
           {:noreply,
            socket
            |> put_flash(:info, msg_text)
-           |> push_navigate(to: ~p"/app/messages/#{message_id}")}
+           |> push_navigate(to: ~p"/app/#{socket.assigns.tenant_id}/messages/#{message_id}")}
 
         {:error, reason} ->
           msg = GatewayErrorHelper.format_gateway_error(reason)
@@ -100,4 +100,3 @@ defmodule UiWebWeb.MessagesLive.Form do
     end
   end
 end
-

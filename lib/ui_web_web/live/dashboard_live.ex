@@ -26,9 +26,16 @@ defmodule UiWebWeb.DashboardLive do
     if connected?(socket) do
       :timer.send_interval(@poll_ms, :tick)
       send(self(), :tick)
+      Phoenix.PubSub.subscribe(UiWeb.PubSub, "workers:heartbeat")
     end
 
     {:ok, socket}
+  end
+
+  def handle_info({:event, heartbeat}, socket) do
+    worker_id = heartbeat["worker_id"] || "unknown"
+    updated_workers = Map.put(socket.assigns.workers, worker_id, heartbeat)
+    {:noreply, assign(socket, workers: updated_workers)}
   end
 
   def handle_info(:tick, socket) do
@@ -96,6 +103,33 @@ defmodule UiWebWeb.DashboardLive do
             details={get_nats_details(@health, @metrics)}
           />
         </div>
+      </div>
+
+      <!-- Active Workers -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Active Workers (Real-time)</h3>
+        <%= if map_size(@workers) == 0 do %>
+          <p class="text-gray-500 italic">No workers active</p>
+        <% else %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <%= for {id, info} <- @workers do %>
+              <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-gray-900"><%= id %></h4>
+                    <p class="text-xs text-gray-500">Last seen: <%= info["timestamp"] %></p>
+                  </div>
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    <%= info["status"] || "Active" %>
+                  </span>
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                  Load: <%= info["load"] || 0.0 %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
       </div>
 
       <!-- Real-time Metrics -->

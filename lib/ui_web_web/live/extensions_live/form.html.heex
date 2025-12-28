@@ -1,7 +1,7 @@
 <div class="px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
   <!-- Header -->
   <div class="mb-8">
-    <.link navigate={~p"/app/extensions"} class="text-sm text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
+    <.link navigate={~p"/app/#{@tenant_id}/extensions"} class="text-sm text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
       ← Back to Extensions
     </.link>
     <h1 class="text-3xl font-bold text-gray-900"><%= @page_title %></h1>
@@ -295,7 +295,7 @@
       <!-- Actions -->
       <div class="flex justify-end gap-4">
         <.link
-          navigate={~p"/app/extensions"}
+          navigate={~p"/app/#{@tenant_id}/extensions"}
           class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel

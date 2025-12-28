@@ -78,7 +78,7 @@ All configuration files, authentication modules, layouts, and Dashboard LiveView
 
 - **Quick Checklist**: `PHASE1_CHECKLIST.md`
 - **Detailed Status**: `STATUS.md`
-- **Full Setup Guide**: `docs/dev/PHASE1_UI_WEB_PROJECT_SETUP.md`
+- **Full Setup Guide**: `docs/archive/dev/PHASE1_UI_WEB_PROJECT_SETUP.md`
 - **Why LiveView**: `docs/WHY_PHOENIX_LIVEVIEW.md`
 
 ---

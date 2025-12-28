@@ -15,7 +15,7 @@
 
     <div class="mt-4 sm:mt-0">
       <.link
-        navigate={~p"/app/extensions/new"}
+        navigate={~p"/app/#{@tenant_id}/extensions/new"}
         class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
       >
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@
 
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                     <.link
-                      navigate={~p"/app/extensions/#{extension["id"]}/edit"}
+                      navigate={~p"/app/#{@tenant_id}/extensions/#{extension["id"]}/edit"}
                       class="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
                       View
@@ -212,4 +212,3 @@
     <% end %>
   <% end %>
 </div>
-

@@ -49,7 +49,7 @@ defmodule UiWebWeb.DevLoginController do
       conn
       |> Guardian.Plug.sign_in(user)
       |> put_flash(:info, "Logged in as #{user_id}")
-      |> redirect(to: ~p"/app/dashboard")
+      |> redirect(to: ~p"/app/#{tenant_id}/dashboard")
     end
   end
   

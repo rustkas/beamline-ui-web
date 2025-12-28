@@ -320,6 +320,6 @@ end
 
 - **NATS Subjects:** `docs/NATS_SUBJECTS.md`
 - **Router Protocol:** `docs/ARCHITECTURE/PROTO_NATS_MAPPING.md`
-- **CP1 Boundaries:** `docs/dev/CP1_BOUNDARIES_AND_CONTRACTS.md`
+- **CP1 Boundaries:** `docs/archive/dev/CP1_BOUNDARIES_AND_CONTRACTS.md`
 - **Gnat Library:** https://hex.pm/packages/gnat
 

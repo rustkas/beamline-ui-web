@@ -9,7 +9,7 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
     socket =
       socket
       |> assign(page_title: "Extensions Pipeline Inspector")
-      |> assign(tenant_id: "tenant_dev")
+      |> assign(tenant_id: Map.get(socket.assigns, :tenant_id, "tenant_dev"))
       |> assign(policy_id: "default")
       |> assign(policy: nil)
       |> assign(extensions: [])
@@ -22,11 +22,18 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
       |> assign(error: nil)
 
     if connected?(socket) do
+      Phoenix.PubSub.subscribe(UiWeb.PubSub, "extensions:updates")
       :timer.send_interval(@poll_ms, :poll)
       send(self(), :poll)
     end
 
     {:ok, socket}
+  end
+
+  def handle_info({:event, event}, socket) do
+    # Handle real-time updates
+    socket = handle_realtime_event(socket, event)
+    {:noreply, socket}
   end
 
   def handle_info(:poll, socket) do
@@ -157,6 +164,40 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
         error
     end
   end
+
+  defp handle_realtime_event(socket, %{"type" => "extension_created", "data" => ext}) do
+    extensions = [ext | socket.assigns.extensions]
+    assign(socket, :extensions, extensions)
+  end
+
+  defp handle_realtime_event(socket, %{"type" => "extension_updated", "data" => ext}) do
+    id = ext["id"] || ext[:id]
+    extensions =
+      Enum.map(socket.assigns.extensions, fn e ->
+        if (e["id"] || e[:id]) == id, do: ext, else: e
+      end)
+
+    assign(socket, :extensions, extensions)
+  end
+
+  defp handle_realtime_event(socket, %{"type" => "extension_deleted", "data" => %{"id" => id}}) do
+    extensions = Enum.reject(socket.assigns.extensions, fn e -> (e["id"] || e[:id]) == id end)
+    assign(socket, :extensions, extensions)
+  end
+
+  defp handle_realtime_event(socket, %{"type" => "extension_health_updated", "data" => data}) do
+    id = data["id"] || data[:id]
+    health = data["health"] || data[:health] || %{}
+    assign(socket, :extension_health, Map.put(socket.assigns.extension_health, id, health))
+  end
+
+  defp handle_realtime_event(socket, %{"type" => "circuit_state_updated", "data" => data}) do
+    id = data["id"] || data[:id]
+    state = data["state"] || data[:state] || "unknown"
+    assign(socket, :extension_circuit_states, Map.put(socket.assigns.extension_circuit_states, id, state))
+  end
+
+  defp handle_realtime_event(socket, _event), do: socket
 
   def render(assigns) do
     ~H"""
@@ -333,28 +374,30 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
     health = Map.get(assigns.extension_health, ext_id, %{})
     circuit_state = Map.get(assigns.extension_circuit_states, ext_id, "unknown")
 
+    assigns = assign(assigns, ext_id: ext_id, mode: mode, on_fail: on_fail, type: type, health: health, circuit_state: circuit_state)
+
     ~H"""
     <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
-      <span class="font-mono text-xs"><%= ext_id %></span>
-      <span class="text-xs text-gray-500">(<%= type %>)</span>
-      <%= if mode do %>
-        <span class="text-xs px-1 py-0.5 bg-blue-100 rounded">mode: <%= mode %></span>
+      <span class="font-mono text-xs"><%= @ext_id %></span>
+      <span class="text-xs text-gray-500">(<%= @type %>)</span>
+      <%= if @mode do %>
+        <span class="text-xs px-1 py-0.5 bg-blue-100 rounded">mode: <%= @mode %></span>
       <% end %>
-      <%= if on_fail do %>
-        <span class="text-xs px-1 py-0.5 bg-yellow-100 rounded">on_fail: <%= on_fail %></span>
+      <%= if @on_fail do %>
+        <span class="text-xs px-1 py-0.5 bg-yellow-100 rounded">on_fail: <%= @on_fail %></span>
       <% end %>
-      <%= render_health_badge(health) %>
-      <%= render_circuit_badge(circuit_state) %>
+      <%= render_health_badge(%{health: @health}) %>
+      <%= render_circuit_badge(%{state: @circuit_state}) %>
     </div>
     """
   end
 
   defp render_health_status(assigns, ext_id) do
     health = Map.get(assigns.extension_health, ext_id, %{})
-    render_health_badge(health)
+    render_health_badge(%{health: health})
   end
 
-  defp render_health_badge(health) when is_map(health) do
+  defp render_health_badge(%{health: health} = assigns) when is_map(health) do
     status = health["status"] || health[:status] || "unknown"
     success_rate = health["success_rate"] || health[:success_rate]
 
@@ -366,24 +409,26 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
         _ -> "bg-gray-100 text-gray-800"
       end
 
+    assigns = assign(assigns, status: status, success_rate: success_rate, status_class: status_class)
+
     ~H"""
-    <span class={"text-xs px-1 py-0.5 rounded #{status_class}"}>
-      <%= status %>
-      <%= if success_rate do %>
-        (<%= :erlang.float_to_binary(success_rate * 100, decimals: 1) %>%)
+    <span class={"text-xs px-1 py-0.5 rounded #{@status_class}"}>
+      <%= @status %>
+      <%= if @success_rate do %>
+        (<%= :erlang.float_to_binary(@success_rate * 100, decimals: 1) %>%)
       <% end %>
     </span>
     """
   end
 
-  defp render_health_badge(_), do: ~H"<span class="text-xs text-gray-500">N/A</span>"
+  defp render_health_badge(assigns), do: ~H|<span class="text-xs text-gray-500">N/A</span>|
 
   defp render_circuit_state(assigns, ext_id) do
     circuit_state = Map.get(assigns.extension_circuit_states, ext_id, "unknown")
-    render_circuit_badge(circuit_state)
+    render_circuit_badge(%{state: circuit_state})
   end
 
-  defp render_circuit_badge(state) when is_binary(state) do
+  defp render_circuit_badge(%{state: state} = assigns) when is_binary(state) do
     state_class =
       case state do
         "closed" -> "bg-green-100 text-green-800"
@@ -392,23 +437,19 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
         _ -> "bg-gray-100 text-gray-800"
       end
 
+    assigns = assign(assigns, :state_class, state_class)
+
     ~H"""
-    <span class={"text-xs px-1 py-0.5 rounded #{state_class}"}><%= state %></span>
+    <span class={"text-xs px-1 py-0.5 rounded #{@state_class}"}><%= @state %></span>
     """
   end
 
-  defp render_circuit_badge(_), do: ~H"<span class="text-xs text-gray-500">N/A</span>"
+  defp render_circuit_badge(assigns), do: ~H|<span class="text-xs text-gray-500">N/A</span>|
 
   defp render_complexity_assessment(assigns) do
     complexity = assigns.pipeline_complexity
     complexity_level = complexity["complexity_level"] || complexity[:complexity_level] || "unknown"
-    complexity_score = complexity["complexity_score"] || complexity[:complexity_score] || 0
-    total_extensions = complexity["total_extensions"] || complexity[:total_extensions] || 0
-    estimated_latency = complexity["estimated_latency_ms"] || complexity[:estimated_latency_ms] || 0
-    warnings = complexity["warnings"] || complexity[:warnings] || []
-    recommendations = complexity["recommendations"] || complexity[:recommendations] || []
-    recommended_limits = complexity["recommended_limits"] || complexity[:recommended_limits] || %{}
-
+    
     level_class =
       case complexity_level do
         "low" -> "bg-green-100 text-green-800"
@@ -418,23 +459,34 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
         _ -> "bg-gray-100 text-gray-800"
       end
 
+    assigns = 
+      assigns
+      |> assign(:complexity_score, complexity["complexity_score"] || complexity[:complexity_score] || 0)
+      |> assign(:complexity_level, complexity_level)
+      |> assign(:level_class, level_class)
+      |> assign(:total_extensions, complexity["total_extensions"] || complexity[:total_extensions] || 0)
+      |> assign(:estimated_latency, complexity["estimated_latency_ms"] || complexity[:estimated_latency_ms] || 0)
+      |> assign(:recommended_limits, complexity["recommended_limits"] || complexity[:recommended_limits] || %{})
+      |> assign(:warnings, complexity["warnings"] || complexity[:warnings] || [])
+      |> assign(:recommendations, complexity["recommendations"] || complexity[:recommendations] || [])
+
     ~H"""
     <div class="space-y-4">
       <!-- Complexity Score -->
       <div class="flex items-center gap-4">
         <div>
           <span class="text-sm text-gray-600">Complexity Score:</span>
-          <span class={"ml-2 px-2 py-1 rounded text-sm font-medium #{level_class}"}>
-            <%= complexity_score %> (<%= complexity_level %>)
+          <span class={"ml-2 px-2 py-1 rounded text-sm font-medium #{@level_class}"}>
+            <%= @complexity_score %> (<%= @complexity_level %>)
           </span>
         </div>
         <div>
           <span class="text-sm text-gray-600">Total Extensions:</span>
-          <span class="ml-2 font-mono text-sm"><%= total_extensions %></span>
+          <span class="ml-2 font-mono text-sm"><%= @total_extensions %></span>
         </div>
         <div>
           <span class="text-sm text-gray-600">Estimated Latency:</span>
-          <span class="ml-2 font-mono text-sm"><%= estimated_latency %>ms</span>
+          <span class="ml-2 font-mono text-sm"><%= @estimated_latency %>ms</span>
         </div>
       </div>
 
@@ -442,38 +494,13 @@ defmodule UiWebWeb.ExtensionsPipelineLive do
       <div class="text-sm text-gray-600">
         <span class="font-medium">Recommended Limits:</span>
         <span class="ml-2">
-          Total: <%= recommended_limits["max_total"] || recommended_limits[:max_total] || 4 %>,
-          Pre: <%= recommended_limits["max_pre"] || recommended_limits[:max_pre] || 2 %>,
-          Validators: <%= recommended_limits["max_validators"] || recommended_limits[:max_validators] || 2 %>,
-          Post: <%= recommended_limits["max_post"] || recommended_limits[:max_post] || 2 %>
+          Total: <%= @recommended_limits["max_total"] || @recommended_limits[:max_total] || 4 %>,
+          Pre: <%= @recommended_limits["max_pre"] || @recommended_limits[:max_pre] || 2 %>,
+          Validators: <%= @recommended_limits["max_validators"] || @recommended_limits[:max_validators] || 2 %>,
+          Post: <%= @recommended_limits["max_post"] || @recommended_limits[:max_post] || 2 %>
         </span>
       </div>
-
-      <!-- Warnings -->
-      <%= if length(warnings) > 0 do %>
-        <div class="bg-yellow-50 border border-yellow-200 rounded p-3">
-          <h4 class="font-medium text-yellow-800 mb-2">⚠️ Warnings</h4>
-          <ul class="list-disc list-inside text-sm text-yellow-700 space-y-1">
-            <%= for warning <- warnings do %>
-              <li><%= warning %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-
-      <!-- Recommendations -->
-      <%= if length(recommendations) > 0 do %>
-        <div class="bg-blue-50 border border-blue-200 rounded p-3">
-          <h4 class="font-medium text-blue-800 mb-2">💡 Recommendations</h4>
-          <ul class="list-disc list-inside text-sm text-blue-700 space-y-1">
-            <%= for rec <- recommendations do %>
-              <li><%= rec %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
     </div>
     """
   end
 end
-
